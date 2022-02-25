@@ -1,0 +1,32 @@
+name: Build and deploy
+
+on:
+  workflow_dispatch: {}
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    if: startsWith(github.event.head_commit.message, '[CI skip]') == false
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@master
+
+      - name: Deploy to deployment branch
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          personal_token: ${{ secrets.BOT_TOKEN }}
+          publish_dir: ./
+          publish_branch: deploy
+          user_name: ${{ secrets.BOT_USERNAME }}
+          user_email: ${{ secrets.BOT_EMAIL }}
+          exclude_assets: '.github,cdn-urls.txt'
+
+      - name: Invoke Deployment Workflows
+        uses: peter-evans/repository-dispatch@v1
+        with:
+          token: ${{ secrets.BOT_TOKEN }}
+          event-type: deploy
